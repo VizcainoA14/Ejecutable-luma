@@ -24,6 +24,9 @@ from datetime import datetime
 from concurrent.futures import ThreadPoolExecutor
 from SubiraBD import SubirDB
 import subprocess
+import pandas as pd
+import concurrent.futures
+from concurrent.futures import ProcessPoolExecutor
 
 # Base url from server in witch located the images...
 path="https://soho.nascom.nasa.gov/data/REPROCESSING/Completed/"
@@ -70,53 +73,54 @@ def get_all_files(year,type):
     urls_data=urls_data[["date","url"]]
     return urls_data
 
+def process(year, type):
+    start_time = time.time()
+    # Precomputing urls from images availables in server...
+    url_files=get_all_files(year,type)
+    output_name="urls_"+str(year)+"_"+type+".csv"
+    if not os.path.exists('URLS'):
+        os.makedirs('URLS')
+    url_files.to_csv("URLS/"+output_name,index=False)
+    print("Save data type {} from year {}:".format(type,str(year)),"as:",output_name)
+    end_time = time.time()
+    execution_time1 = -(start_time - end_time) / 60
+    print("Execution time to get urls:",execution_time1,"minutes")
+    print("DOne...")
 
 if __name__ == '__main__':
 
     types=["eit171","eit195","eit284","eit304","hmiigr","hmimag"]
-    x = SubirDB()
+    year = "2023"
+    Max_date = []
 
     for type in types:
-    
-        Max_date = x.max_date(type)
-        Max_date = datetime.strptime(Max_date, '%Y-%m-%d %H:%M:%S')
-        Max_year = Max_date.year
-
-        if (Max_date == datetime(Max_year, 12, 31, 13, 0) or 
-            Max_date == datetime(Max_year, 12, 31, 13, 13) or 
-            Max_date == datetime(Max_year, 12, 31, 13, 6) or
-            Max_date == datetime(Max_year, 12, 31, 1, 19) or
-            Max_date == datetime(Max_year, 12, 31, 22, 30) or 
-            Max_date == datetime(Max_year, 12, 31, 22, 0)):
-                
-                Max_year += 1
-        year = str(Max_year)
+        #get max years
+        x =  SubirDB()
+        max_date = datetime.strptime(x.max_date(type), '%Y-%m-%d %H:%M:%S')
+        Max_date.append(max_date)
 
 
+    year = str(Max_date[0].year)
 
-        start_time = time.time()
-        # Precomputing urls from images availables in server...
-        first_time = time.time()
-        url_files=get_all_files(year,type)
-        output_name="urls_"+str(year)+"_"+type+".csv"
-        if not os.path.exists('URLS'):
-            os.makedirs('URLS')
+    with ProcessPoolExecutor() as executor:
+        executor.map(process, [year]*len(types), types)
 
-        # Crear la fecha de corte
-        cutoff = datetime(int(Max_date.year), int(Max_date.month), int(Max_date.day), int(Max_date.hour), int(Max_date.minute))
+    print("Todas las tareas se han completado.")
 
-        # Crear la máscara booleana
-        mask = url_files['date'] > cutoff
 
-        # Aplicar la máscara al DataFrame
-        url_files = url_files[mask]
-        
-        url_files.to_csv("URLS/"+output_name,index=False)
-        print("Save data type {} from year {}:".format(type,str(year)),"as:",output_name)
-        end_time = time.time()
-        execution_time1 = -(start_time - end_time) / 60
-        print("Execution time to get urls:",execution_time1,"minutes")
-        print("DOne...")
+    archivos_csv = ["URLS/urls_" + str(year) + "_" + type + ".csv" for type in types]
 
+    for archivo, max_date in zip(archivos_csv, Max_date):
+        # Leer el archivo CSV en un DataFrame
+        df = pd.read_csv(archivo)
+
+        # Convertir la columna 'date' a datetime
+        df['date'] = pd.to_datetime(df['date'])
+
+        # Filtrar el DataFrame para que solo contenga las filas con fechas mayores a la fecha máxima
+        df = df[df['date'] > max_date]
+
+        # Guardar el DataFrame filtrado de nuevo en el archivo CSV
+        df.to_csv(archivo, index=False)
 
     subprocess.run([sys.executable, "./saiyajin_v3.py", year])
