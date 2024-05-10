@@ -90,7 +90,6 @@ def process(year, type):
 if __name__ == '__main__':
 
     types=["eit171","eit195","eit284","eit304","hmiigr","hmimag"]
-    year = "2023"
     Max_date = []
 
     for type in types:
@@ -99,8 +98,7 @@ if __name__ == '__main__':
         max_date = datetime.strptime(x.max_date(type), '%Y-%m-%d %H:%M:%S')
         Max_date.append(max_date)
 
-
-    year = str(Max_date[0].year)
+    year = "2024"
 
     with ProcessPoolExecutor() as executor:
         executor.map(process, [year]*len(types), types)

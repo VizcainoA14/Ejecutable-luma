@@ -56,7 +56,7 @@ class SubirDB:
         
         for table in tables:
             # Leer el DataFrame desde el archivo CSV
-            df_csv = pd.read_csv(f'./DATA/output_2023_{table}.csv')
+            df_csv = pd.read_csv(f'./DATA/output_2024_{table}.csv')
             
             # Consultar la última fecha en la base de datos
             last_date_query = f'SELECT MAX(date) FROM {table};'
