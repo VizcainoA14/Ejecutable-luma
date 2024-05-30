@@ -48,7 +48,7 @@ def get_all_files(year,type):
     soup = BeautifulSoup(requests.get(path+"{}/{}".format(year,type)).text,features="lxml")
     urls = [link.get('href') for link in soup.find_all('a')[5:]]
 
-    with ThreadPoolExecutor() as executor:
+    with ThreadPoolExecutor(max_workers=8) as executor:
         results = executor.map(lambda args: get_files_for_month(*args), [(year, type, m) for m in urls])
 
     urls2, month, day, Hour, Minute = [], [], [], [], []
@@ -98,7 +98,7 @@ if __name__ == '__main__':
         max_date = datetime.strptime(x.max_date(type), '%Y-%m-%d %H:%M:%S')
         Max_date.append(max_date)
 
-    year = "2024"
+    year = "2023"
 
     with ProcessPoolExecutor() as executor:
         executor.map(process, [year]*len(types), types)

@@ -31,21 +31,20 @@ def set_up():
 class SubirDB:
 
     def __init__(self):
-        self.config = set_up()
+        #self.config = set_up()
 
-        DBNAME = self.config['POSTGRES_DATABASE']
-        USER = self.config['POSTGRES_USER']
-        PASSWORD = self.config['POSTGRES_PASSWORD']
-        HOST = self.config['POSTGRES_HOST']
-        PORT = "5432"
+        #DBNAME = self.config['POSTGRES_DATABASE']
+        #USER = self.config['POSTGRES_USER']
+        #PASSWORD = self.config['POSTGRES_PASSWORD']
+        #HOST = self.config['POSTGRES_HOST']
+        #PORT = "5432"
 
-        self.engine = create_engine(f'postgresql://{USER}:{PASSWORD}@{HOST}:{PORT}/{DBNAME}')
+        #self.engine = create_engine(f'postgresql://{USER}:{PASSWORD}@{HOST}:{PORT}/{DBNAME}')
 
-
-
+        self.engine = create_engine('sqlite:///C://Users//adria//Desktop//Saiyayin//DATA.db') #cambia la ruto a relativa o pon la tuya
 
     def max_date(self, table):
-        query = f'SELECT MAX(date) FROM {table};'
+        query = f'SELECT MAX(date) AS max FROM {table};'
         Max_date = pd.read_sql_query(query, self.engine)['max'][0]
         return Max_date
 
@@ -56,7 +55,7 @@ class SubirDB:
         
         for table in tables:
             # Leer el DataFrame desde el archivo CSV
-            df_csv = pd.read_csv(f'./DATA/output_2024_{table}.csv')
+            df_csv = pd.read_csv(f'./DATA/output_2023_{table}.csv')
             
             # Consultar la última fecha en la base de datos
             last_date_query = f'SELECT MAX(date) FROM {table};'
