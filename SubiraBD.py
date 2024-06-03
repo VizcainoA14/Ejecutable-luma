@@ -1,3 +1,4 @@
+from datetime import datetime
 from sqlalchemy import text
 import pandas as pd
 from sqlalchemy import create_engine
@@ -41,7 +42,7 @@ class SubirDB:
 
         #self.engine = create_engine(f'postgresql://{USER}:{PASSWORD}@{HOST}:{PORT}/{DBNAME}')
 
-        self.engine = create_engine('sqlite:///C://Users//adria//Desktop//Saiyayin//DATA.db') #cambia la ruto a relativa o pon la tuya
+        self.engine = create_engine('sqlite:///C://Users//adria//Documents//GitHub//LumaWeb//prisma//DATA.db') #cambia la ruta a la base de datos
 
     def max_date(self, table):
         query = f'SELECT MAX(date) AS max FROM {table};'
@@ -49,16 +50,18 @@ class SubirDB:
         return Max_date
 
     def create_tables(self):
+        year = str(datetime.now().year) 
+
         tables = [
             'eit171', 'eit195', 'eit284', 'eit304', 'hmiigr', 'hmimag'
         ]
         
         for table in tables:
             # Leer el DataFrame desde el archivo CSV
-            df_csv = pd.read_csv(f'./DATA/output_2023_{table}.csv')
+            df_csv = pd.read_csv(f'./DATA/output_{year}_{table}.csv')
             
             # Consultar la última fecha en la base de datos
-            last_date_query = f'SELECT MAX(date) FROM {table};'
+            last_date_query = f'SELECT MAX(date) AS max FROM {table};'
             last_date = pd.read_sql_query(last_date_query, self.engine)['max'][0]
 
             # Filtrar solo las filas con fechas mayores a la última fecha en la base de datos
@@ -69,4 +72,3 @@ class SubirDB:
                 df_new_data.to_sql(table, self.engine, if_exists='append', index=False)
                 print(f'Se agregaron {len(df_new_data)} nuevas filas a la tabla {table}.')
 
-x = SubirDB()

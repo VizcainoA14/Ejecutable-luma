@@ -98,7 +98,9 @@ if __name__ == '__main__':
         max_date = datetime.strptime(x.max_date(type), '%Y-%m-%d %H:%M:%S')
         Max_date.append(max_date)
 
-    year = "2023"
+    #obtener año del computador
+
+    year = str(datetime.now().year)
 
     with ProcessPoolExecutor() as executor:
         executor.map(process, [year]*len(types), types)

@@ -23,6 +23,7 @@ from datetime import datetime
 from concurrent.futures import ThreadPoolExecutor
 import concurrent.futures
 from SubiraBD import SubirDB
+import subprocess
 
 
 
@@ -493,11 +494,23 @@ def process_type(args):
 if __name__ == '__main__':
 
     types=["eit171","eit195","eit284","eit304","hmiigr","hmimag"]
-
+    
     year=sys.argv[1]
 
-    with concurrent.futures.ProcessPoolExecutor() as executor:
-        executor.map(process_type, [(type, year) for type in types])
+    try:
+        with concurrent.futures.ProcessPoolExecutor() as executor:
+            executor.map(process_type, [(type, year) for type in types])
+    except Exception as e:
+        print(f"Se produjo un error: {e}")
+        sys.exit(1)
 
-    x = SubirDB()
-    x.create_tables()
+    try:
+        x = SubirDB()
+        x.create_tables()
+    except Exception as e:
+        print(f"Se produjo un error al crear las tablas: {e}")
+        sys.exit(1)
+
+
+    subprocess.run(["cmd", "/c", "commit.bat"])
+
